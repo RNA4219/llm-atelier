@@ -226,7 +226,7 @@ func validateWorkflow(g workflowGraph, installed []installedModel) error {
 			if port == "prompt" {
 				want = "core.prompt"
 			}
-			if port == "control" && from.Type == "core.image" {
+			if port == "control" {
 				want = "core.image"
 			}
 			if port == "image" && from.Type == "core.image" {

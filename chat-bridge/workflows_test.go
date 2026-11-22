@@ -183,3 +183,21 @@ func TestWorkflowCatalogDoesNotTrustSupportedFlag(t *testing.T) {
 		t.Fatal(list, err)
 	}
 }
+
+func TestWorkflowRejectsSamplerAsControlImage(t *testing.T) {
+	installed := append(verifiedFixtures(), installedModel{ID: swapModel, Family: "SDXL", Supported: true})
+	g := workflowFixture()
+	g.Nodes[1].Params["model"] = swapModel
+	g.Nodes[1].Params["controlnet"] = "canny"
+	g.Nodes[1].Params["control_strength"] = "1"
+	g.Nodes = append(g.Nodes, workflowNode{ID: "src", Type: "sdxl.sample", Params: map[string]string{"model": models[1].ID, "steps": "8", "cfg": "1.5", "seed": "104729", "denoise": "0.35", "scheduler": "lcm", "width": "1024", "height": "1024", "aspect": "1:1"}, Inputs: map[string]string{"prompt": "words"}})
+	g.Nodes[1].Inputs["control"] = "src"
+	if err := validateWorkflow(g, installed); err == nil {
+		t.Fatal("sampler accepted as control image source")
+	}
+	g.Nodes = append(g.Nodes, workflowNode{ID: "ref", Type: "core.image", Params: map[string]string{"image": "/images/0123456789abcdef01234567.png"}, Inputs: map[string]string{}})
+	g.Nodes[1].Inputs["control"] = "ref"
+	if err := validateWorkflow(g, installed); err != nil {
+		t.Fatalf("stored image as control rejected: %v", err)
+	}
+}
