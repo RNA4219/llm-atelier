@@ -195,6 +195,7 @@ func TestWorkflowRejectsSamplerAsControlImage(t *testing.T) {
 	if err := validateWorkflow(g, installed); err == nil {
 		t.Fatal("sampler accepted as control image source")
 	}
+	g.Nodes = g.Nodes[:len(g.Nodes)-1]
 	g.Nodes = append(g.Nodes, workflowNode{ID: "ref", Type: "core.image", Params: map[string]string{"image": "/images/0123456789abcdef01234567.png"}, Inputs: map[string]string{}})
 	g.Nodes[1].Inputs["control"] = "ref"
 	if err := validateWorkflow(g, installed); err != nil {
